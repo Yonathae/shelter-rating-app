@@ -24,6 +24,7 @@ export default function TopSheltersScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<MapStackParamList>>();
   const [shelters, setShelters] = useState<Shelter[]>([]);
   const [loading, setLoading] = useState(true);
+  const [debug, setDebug] = useState('');
 
   const fetchTop = useCallback(async () => {
     setLoading(true);
@@ -33,6 +34,7 @@ export default function TopSheltersScreen() {
     ]);
     const allShelters: Shelter[] = sheltersRes.data ?? [];
     const allRatings: Rating[] = ratingsRes.data ?? [];
+    setDebug(`shelters: ${allShelters.length}, ratings: ${allRatings.length}, shelterErr: ${sheltersRes.error?.message ?? 'none'}, ratingsErr: ${ratingsRes.error?.message ?? 'none'}`);
 
     const avg = (rs: Rating[], key: keyof Rating) => {
       const vals = rs.map((r) => r[key] as number).filter(Boolean);
@@ -76,7 +78,10 @@ export default function TopSheltersScreen() {
       keyExtractor={(item) => item.id}
       refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchTop} />}
       ListHeaderComponent={
-        <Text style={styles.title}>Top 5 Shelters in Tel Aviv</Text>
+        <>
+          <Text style={styles.title}>Top 5 Shelters in Tel Aviv</Text>
+          {debug ? <Text style={styles.debug}>{debug}</Text> : null}
+        </>
       }
       ListEmptyComponent={
         <Text style={styles.empty}>No rated shelters yet. Be the first to rate one!</Text>
@@ -147,4 +152,5 @@ const styles = StyleSheet.create({
   scoreNum: { color: '#fff', fontSize: 18, fontWeight: '800', lineHeight: 20 },
   scoreLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 10 },
   empty: { textAlign: 'center', color: '#aaa', marginTop: 60, fontSize: 15 },
+  debug: { fontSize: 11, color: '#e74c3c', marginBottom: 8, lineHeight: 16 },
 });
