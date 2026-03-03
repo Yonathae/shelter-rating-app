@@ -8,31 +8,31 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { supabase } from '../lib/supabase';
 import { Shelter, MapStackParamList } from '../types';
-
-type Props = {
-  navigation: NativeStackNavigationProp<MapStackParamList, 'MapHome'>;
-};
 
 const MEDALS = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
 
 const SCORE_COLOR = (score: number) =>
   score >= 4 ? '#27ae60' : score >= 3 ? '#f5a623' : '#e74c3c';
 
-export default function TopSheltersScreen({ navigation }: Props) {
+export default function TopSheltersScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<MapStackParamList>>();
   const [shelters, setShelters] = useState<Shelter[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchTop = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase
-      .rpc('shelters_with_ratings')
-      .not('overall_score', 'is', null)
-      .limit(5);
-    if (data) setShelters(data);
+    const { data } = await supabase.rpc('shelters_with_ratings');
+    if (data) {
+      const rated = data
+        .filter((s: Shelter) => s.overall_score != null)
+        .slice(0, 5);
+      setShelters(rated);
+    }
     setLoading(false);
   }, []);
 
