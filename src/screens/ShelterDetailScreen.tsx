@@ -15,6 +15,7 @@ import { RouteProp, useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Shelter, Rating, MapStackParamList } from '../types';
+import { SUB_CATEGORIES } from '../lib/subCategories';
 
 type Props = {
   navigation: NativeStackNavigationProp<MapStackParamList, 'ShelterDetail'>;
@@ -196,6 +197,43 @@ export default function ShelterDetailScreen({ navigation, route }: Props) {
         <Text style={styles.rateBtnText}>{myRating ? 'Edit My Rating' : 'Rate This Shelter'}</Text>
       </TouchableOpacity>
 
+      {/* Sub-category aggregates */}
+      {ratings.some((r) => r.sub_ratings) && (
+        <View style={styles.subSection}>
+          {SUB_CATEGORIES.map((cat) => {
+            const catRatings = ratings.filter((r) => r.sub_ratings);
+            if (!catRatings.length) return null;
+            return (
+              <View key={cat.key} style={styles.subCard}>
+                <Text style={styles.subCardTitle}>{cat.emoji} {cat.label}</Text>
+                {cat.questions.map((q) => {
+                  const values = catRatings.map((r) => r.sub_ratings![q.key]).filter((v) => v !== undefined && v !== null);
+                  if (!values.length) return null;
+                  if (q.type === 'bool') {
+                    const yesCount = values.filter(Boolean).length;
+                    const pct = Math.round((yesCount / values.length) * 100);
+                    return (
+                      <View key={q.key} style={styles.subRow}>
+                        <Text style={styles.subLabel}>{q.label}</Text>
+                        <Text style={styles.subValue}>{pct}% yes</Text>
+                      </View>
+                    );
+                  } else {
+                    const avg = (values as number[]).reduce((a, b) => a + b, 0) / values.length;
+                    return (
+                      <View key={q.key} style={styles.subRow}>
+                        <Text style={styles.subLabel}>{q.label}</Text>
+                        <Text style={styles.subValue}>{avg.toFixed(1)} / 5</Text>
+                      </View>
+                    );
+                  }
+                })}
+              </View>
+            );
+          })}
+        </View>
+      )}
+
       {/* Reviews */}
       {ratings.length > 0 && (
         <View style={styles.reviews}>
@@ -292,4 +330,19 @@ const styles = StyleSheet.create({
   reviewScore: { fontSize: 13, color: '#555' },
   reviewNote: { fontSize: 14, color: '#333', marginTop: 2 },
   reviewDate: { fontSize: 11, color: '#ccc', textAlign: 'right' },
+  subSection: { gap: 12, paddingHorizontal: 20 },
+  subCard: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 14,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  subCardTitle: { fontSize: 15, fontWeight: '700', color: '#1a1a2e', marginBottom: 2 },
+  subRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  subLabel: { fontSize: 13, color: '#555', flex: 1, paddingRight: 8 },
+  subValue: { fontSize: 13, fontWeight: '600', color: '#4f6ef7' },
 });

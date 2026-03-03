@@ -23,6 +23,7 @@ export interface Rating {
   clean: number;
   happy: number;
   note: string | null;
+  sub_ratings: Record<string, number | boolean> | null;
   created_at: string;
 }
 

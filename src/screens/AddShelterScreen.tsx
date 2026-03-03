@@ -13,6 +13,9 @@ import {
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
+// Bounding box for Tel Aviv municipality (roughly)
+const TEL_AVIV_BOUNDS = { minLat: 32.03, maxLat: 32.14, minLng: 34.74, maxLng: 34.83 };
+
 async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
   const encoded = encodeURIComponent(`${address}, Tel Aviv, Israel`);
   const url = `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1`;
@@ -21,7 +24,13 @@ async function geocodeAddress(address: string): Promise<{ lat: number; lng: numb
   });
   const json = await res.json();
   if (json.length > 0) {
-    return { lat: parseFloat(json[0].lat), lng: parseFloat(json[0].lon) };
+    const lat = parseFloat(json[0].lat);
+    const lng = parseFloat(json[0].lon);
+    const inTelAviv =
+      lat >= TEL_AVIV_BOUNDS.minLat && lat <= TEL_AVIV_BOUNDS.maxLat &&
+      lng >= TEL_AVIV_BOUNDS.minLng && lng <= TEL_AVIV_BOUNDS.maxLng;
+    if (!inTelAviv) return null;
+    return { lat, lng };
   }
   return null;
 }
@@ -40,7 +49,7 @@ export default function AddShelterScreen() {
     try {
       const coords = await geocodeAddress(address.trim());
       if (!coords) {
-        Alert.alert('Address not found', 'Could not locate this address. Try being more specific.');
+        Alert.alert('Address not found', 'Could not locate this address in Tel Aviv. Only Tel Aviv addresses are supported.');
         setLoading(false);
         return;
       }
