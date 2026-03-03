@@ -68,8 +68,6 @@ export const SUB_CATEGORIES: SubCategory[] = [
       { type: 'scale', key: 'random_match_probability', label: 'If you pick 2 random people, chance they\'d like each other', low: 'Guaranteed awkward silence', high: 'It\'s basically a dating app' },
       { type: 'scale', key: 'situationships', label: 'Average number of active situationships per person', low: 'Emotionally available', high: 'It\'s complicated x4' },
       { type: 'scale', key: 'texting_ex', label: 'Probability someone is texting their ex right now', low: 'Fully moved on', high: 'Everyone\'s typing...' },
-      { type: 'scale', key: 'breakup_imminent', label: 'Probability of witnessing a breakup during your visit', low: 'Love is in the air', high: 'Bring tissues' },
-      { type: 'bool', key: 'couples_counseling_vibe', label: 'At least one couple looks like they need therapy' },
     ],
   },
   {
