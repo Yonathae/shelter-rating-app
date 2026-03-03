@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,8 @@ import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
+  Platform,
 } from 'react-native';
-import { Platform } from 'react-native';
 // react-native-maps is not available on web
 const MapView = Platform.OS === 'web' ? null : require('react-native-maps').default;
 const { Marker, Callout } = Platform.OS === 'web' ? ({} as any) : require('react-native-maps');
@@ -28,12 +28,12 @@ const TEL_AVIV_REGION = {
   longitudeDelta: 0.08,
 };
 
-function StarBar({ value, max = 5 }: { value: number; max?: number }) {
-  const filled = Math.round(value);
+function ScoreBadge({ score }: { score: number }) {
+  const color = score >= 4 ? '#27ae60' : score >= 3 ? '#f5a623' : '#e74c3c';
   return (
-    <Text style={{ fontSize: 12 }}>
-      {Array.from({ length: max }, (_, i) => (i < filled ? '★' : '☆')).join('')}
-    </Text>
+    <View style={[styles.scoreBadge, { backgroundColor: color }]}>
+      <Text style={styles.scoreBadgeText}>{score.toFixed(1)}</Text>
+    </View>
   );
 }
 
@@ -51,18 +51,8 @@ export default function MapScreen({ navigation }: Props) {
 
   useFocusEffect(useCallback(() => { fetchShelters(); }, [fetchShelters]));
 
-  const avgScore = (s: Shelter) => {
-    const vals = [s.avg_friendly, s.avg_safe, s.avg_clean, s.avg_happy].filter(Boolean) as number[];
-    if (!vals.length) return null;
-    return (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
-  };
-
   if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#4f6ef7" />
-      </View>
-    );
+    return <View style={styles.center}><ActivityIndicator size="large" color="#4f6ef7" /></View>;
   }
 
   return (
@@ -95,8 +85,8 @@ export default function MapScreen({ navigation }: Props) {
                   <View style={styles.callout}>
                     <Text style={styles.calloutName}>{shelter.name}</Text>
                     <Text style={styles.calloutAddress} numberOfLines={1}>{shelter.address}</Text>
-                    {avgScore(shelter) ? (
-                      <Text style={styles.calloutScore}>Overall: {avgScore(shelter)} / 5</Text>
+                    {shelter.overall_score ? (
+                      <Text style={styles.calloutScore}>⭐ {shelter.overall_score.toFixed(1)} / 5</Text>
                     ) : (
                       <Text style={styles.calloutScore}>No ratings yet</Text>
                     )}
@@ -125,27 +115,34 @@ export default function MapScreen({ navigation }: Props) {
               style={styles.card}
               onPress={() => navigation.navigate('ShelterDetail', { shelter: item })}
             >
-              <Text style={styles.cardName}>{item.name}</Text>
-              <Text style={styles.cardAddress}>{item.address}</Text>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardTitles}>
+                  <Text style={styles.cardName}>{item.name}</Text>
+                  <Text style={styles.cardAddress}>{item.address}</Text>
+                </View>
+                {item.overall_score ? (
+                  <ScoreBadge score={item.overall_score} />
+                ) : null}
+              </View>
+
               {item.rating_count ? (
-                <View style={styles.cardRatings}>
-                  <View style={styles.ratingRow}>
-                    <Text style={styles.ratingLabel}>Friendly</Text>
-                    <StarBar value={item.avg_friendly ?? 0} />
+                <View style={styles.cardMeta}>
+                  <View style={styles.subScores}>
+                    {[
+                      { label: '😊', val: item.avg_friendly },
+                      { label: '🛡️', val: item.avg_safe },
+                      { label: '✨', val: item.avg_clean },
+                      { label: '😄', val: item.avg_happy },
+                    ].map(({ label, val }) => (
+                      <View key={label} style={styles.subScore}>
+                        <Text style={styles.subScoreEmoji}>{label}</Text>
+                        <Text style={styles.subScoreVal}>{val?.toFixed(1) ?? '—'}</Text>
+                      </View>
+                    ))}
                   </View>
-                  <View style={styles.ratingRow}>
-                    <Text style={styles.ratingLabel}>Safe</Text>
-                    <StarBar value={item.avg_safe ?? 0} />
-                  </View>
-                  <View style={styles.ratingRow}>
-                    <Text style={styles.ratingLabel}>Clean</Text>
-                    <StarBar value={item.avg_clean ?? 0} />
-                  </View>
-                  <View style={styles.ratingRow}>
-                    <Text style={styles.ratingLabel}>Happy</Text>
-                    <StarBar value={item.avg_happy ?? 0} />
-                  </View>
-                  <Text style={styles.ratingCount}>{item.rating_count} rating{item.rating_count !== 1 ? 's' : ''}</Text>
+                  <Text style={styles.ratingCount}>
+                    {item.rating_count} rating{item.rating_count !== 1 ? 's' : ''}
+                  </Text>
                 </View>
               ) : (
                 <Text style={styles.noRating}>No ratings yet</Text>
@@ -168,12 +165,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 3,
   },
-  toggleBtn: {
-    flex: 1,
-    paddingVertical: 8,
-    alignItems: 'center',
-    borderRadius: 8,
-  },
+  toggleBtn: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8 },
   toggleActive: { backgroundColor: '#fff', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
   toggleText: { fontSize: 14, color: '#666', fontWeight: '500' },
   toggleTextActive: { color: '#1a1a2e', fontWeight: '700' },
@@ -188,17 +180,30 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 14,
     padding: 16,
+    gap: 10,
     shadowColor: '#000',
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
   },
-  cardName: { fontSize: 17, fontWeight: '700', color: '#1a1a2e', marginBottom: 2 },
-  cardAddress: { fontSize: 13, color: '#888', marginBottom: 10 },
-  cardRatings: { gap: 4 },
-  ratingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  ratingLabel: { fontSize: 13, color: '#555', width: 60 },
-  ratingCount: { fontSize: 12, color: '#aaa', marginTop: 6 },
+  cardHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  cardTitles: { flex: 1 },
+  cardName: { fontSize: 17, fontWeight: '700', color: '#1a1a2e' },
+  cardAddress: { fontSize: 13, color: '#888', marginTop: 2 },
+  scoreBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scoreBadgeText: { color: '#fff', fontSize: 15, fontWeight: '800' },
+  cardMeta: { gap: 6 },
+  subScores: { flexDirection: 'row', gap: 12 },
+  subScore: { alignItems: 'center', gap: 2 },
+  subScoreEmoji: { fontSize: 14 },
+  subScoreVal: { fontSize: 12, fontWeight: '600', color: '#555' },
+  ratingCount: { fontSize: 12, color: '#aaa' },
   noRating: { fontSize: 13, color: '#bbb', fontStyle: 'italic' },
   empty: { textAlign: 'center', color: '#aaa', marginTop: 60, fontSize: 15 },
 });

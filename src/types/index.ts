@@ -7,6 +7,7 @@ export interface Shelter {
   added_by: string;
   created_at: string;
   image_url?: string | null;
+  overall_score?: number;
   avg_friendly?: number;
   avg_safe?: number;
   avg_clean?: number;
@@ -39,6 +40,7 @@ export type AuthStackParamList = {
 
 export type MainTabParamList = {
   Map: undefined;
+  Top5: undefined;
   AddShelter: undefined;
 };
 

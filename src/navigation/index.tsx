@@ -18,6 +18,7 @@ import MapScreen from '../screens/MapScreen';
 import ShelterDetailScreen from '../screens/ShelterDetailScreen';
 import RateShelterScreen from '../screens/RateShelterScreen';
 import AddShelterScreen from '../screens/AddShelterScreen';
+import TopSheltersScreen from '../screens/TopSheltersScreen';
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -60,7 +61,7 @@ function MainNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused }) => {
-          const icons: Record<string, string> = { Map: '🗺️', AddShelter: '➕' };
+          const icons: Record<string, string> = { Map: '🗺️', Top5: '🏆', AddShelter: '➕' };
           return <Text style={{ fontSize: focused ? 22 : 18 }}>{icons[route.name]}</Text>;
         },
         tabBarActiveTintColor: '#4f6ef7',
@@ -69,6 +70,7 @@ function MainNavigator() {
       })}
     >
       <Tab.Screen name="Map" component={MapNavigator} options={{ title: 'Shelters' }} />
+      <Tab.Screen name="Top5" component={TopSheltersScreen} options={{ title: 'Top 5', headerShown: true }} />
       <Tab.Screen name="AddShelter" component={AddShelterScreen} options={{ title: 'Add Shelter', headerShown: true }} />
     </Tab.Navigator>
   );

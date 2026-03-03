@@ -159,8 +159,20 @@ export default function ShelterDetailScreen({ navigation, route }: Props) {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.name}>{shelterData.name}</Text>
-        <Text style={styles.address}>{shelterData.address}</Text>
+        <View style={styles.headerTop}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.name}>{shelterData.name}</Text>
+            <Text style={styles.address}>{shelterData.address}</Text>
+          </View>
+          {shelterData.overall_score ? (
+            <View style={[styles.scoreBadge, {
+              backgroundColor: shelterData.overall_score >= 4 ? '#27ae60' : shelterData.overall_score >= 3 ? '#f5a623' : '#e74c3c'
+            }]}>
+              <Text style={styles.scoreBadgeNum}>{shelterData.overall_score.toFixed(1)}</Text>
+              <Text style={styles.scoreBadgeLabel}>/ 5</Text>
+            </View>
+          ) : null}
+        </View>
         {isOwner && (
           <TouchableOpacity onPress={handleDelete} style={styles.deleteBtn}>
             <Text style={styles.deleteBtnText}>Delete Shelter</Text>
@@ -285,10 +297,14 @@ const styles = StyleSheet.create({
   },
   photoOverlayText: { color: '#fff', fontSize: 13, fontWeight: '600' },
 
-  header: { gap: 4, paddingHorizontal: 20 },
+  header: { gap: 8, paddingHorizontal: 20 },
+  headerTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   name: { fontSize: 24, fontWeight: '700', color: '#1a1a2e' },
-  address: { fontSize: 14, color: '#888' },
-  deleteBtn: { marginTop: 8, alignSelf: 'flex-start' },
+  address: { fontSize: 14, color: '#888', marginTop: 2 },
+  scoreBadge: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center' },
+  scoreBadgeNum: { color: '#fff', fontSize: 20, fontWeight: '800', lineHeight: 22 },
+  scoreBadgeLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 11 },
+  deleteBtn: { alignSelf: 'flex-start' },
   deleteBtnText: { color: '#e74c3c', fontSize: 13 },
 
   scoreCard: {
