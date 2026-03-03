@@ -59,6 +59,32 @@ export const SUB_CATEGORIES: SubCategory[] = [
     ],
   },
   {
+    key: 'relationships',
+    label: 'Relationships',
+    emoji: '💔',
+    questions: [
+      { type: 'scale', key: 'exes_present', label: 'How many people here are exes of each other', low: 'Total strangers', high: 'Everyone has a history' },
+      { type: 'scale', key: 'rent_trapped', label: 'How many would leave each other but can\'t afford rent', low: 'Everyone\'s genuinely happy', high: 'Pure financial hostages' },
+      { type: 'scale', key: 'random_match_probability', label: 'If you pick 2 random people, chance they\'d like each other', low: 'Guaranteed awkward silence', high: 'It\'s basically a dating app' },
+      { type: 'scale', key: 'situationships', label: 'Average number of active situationships per person', low: 'Emotionally available', high: 'It\'s complicated x4' },
+      { type: 'scale', key: 'texting_ex', label: 'Probability someone is texting their ex right now', low: 'Fully moved on', high: 'Everyone\'s typing...' },
+      { type: 'scale', key: 'breakup_imminent', label: 'Probability of witnessing a breakup during your visit', low: 'Love is in the air', high: 'Bring tissues' },
+      { type: 'bool', key: 'couples_counseling_vibe', label: 'At least one couple looks like they need therapy' },
+    ],
+  },
+  {
+    key: 'economics',
+    label: 'Economics',
+    emoji: '💸',
+    questions: [
+      { type: 'scale', key: 'avg_income_vibe', label: 'Average income vibe', low: 'Surviving on falafel', high: 'Old money, new problems' },
+      { type: 'scale', key: 'crypto_talk', label: 'How many people are discussing crypto', low: 'Blissful silence', high: 'It\'s a trading floor' },
+      { type: 'scale', key: 'between_jobs', label: 'Probability someone is "between jobs"', low: 'Everyone\'s employed', high: 'LinkedIn open on every screen' },
+      { type: 'scale', key: 'freelancers', label: 'Freelancer density', low: 'All salaried', high: 'Everyone invoices everything' },
+      { type: 'bool', key: 'someone_fundraising', label: 'Someone is pitching a startup or asking for money' },
+    ],
+  },
+  {
     key: 'aesthetics',
     label: 'Aesthetics',
     emoji: '🎨',
