@@ -16,6 +16,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Shelter, Rating, MapStackParamList } from '../types';
 import { SUB_CATEGORIES } from '../lib/subCategories';
+import { computeCumulativeScore } from '../lib/scoring';
 
 type Props = {
   navigation: NativeStackNavigationProp<MapStackParamList, 'ShelterDetail'>;
@@ -130,6 +131,7 @@ export default function ShelterDetailScreen({ navigation, route }: Props) {
   }
 
   const isOwner = user?.id === shelter.added_by;
+  const cumulativeScore = computeCumulativeScore(shelterData, ratings);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -164,11 +166,11 @@ export default function ShelterDetailScreen({ navigation, route }: Props) {
             <Text style={styles.name}>{shelterData.name}</Text>
             <Text style={styles.address}>{shelterData.address}</Text>
           </View>
-          {shelterData.overall_score ? (
+          {cumulativeScore != null ? (
             <View style={[styles.scoreBadge, {
-              backgroundColor: shelterData.overall_score >= 4 ? '#27ae60' : shelterData.overall_score >= 3 ? '#f5a623' : '#e74c3c'
+              backgroundColor: cumulativeScore >= 4 ? '#27ae60' : cumulativeScore >= 3 ? '#f5a623' : '#e74c3c'
             }]}>
-              <Text style={styles.scoreBadgeNum}>{shelterData.overall_score.toFixed(1)}</Text>
+              <Text style={styles.scoreBadgeNum}>{cumulativeScore.toFixed(1)}</Text>
               <Text style={styles.scoreBadgeLabel}>/ 5</Text>
             </View>
           ) : null}

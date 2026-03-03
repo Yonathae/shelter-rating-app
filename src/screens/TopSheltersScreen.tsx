@@ -12,7 +12,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { supabase } from '../lib/supabase';
-import { Shelter, MapStackParamList } from '../types';
+import { Shelter, Rating, MapStackParamList } from '../types';
+import { computeCumulativeScore } from '../lib/scoring';
 
 const MEDALS = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
 
@@ -26,19 +27,19 @@ export default function TopSheltersScreen() {
 
   const fetchTop = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.rpc('shelters_with_ratings');
-    if (data) {
-      const withScore = data
+    const [sheltersRes, ratingsRes] = await Promise.all([
+      supabase.rpc('shelters_with_ratings'),
+      supabase.from('ratings').select('*'),
+    ]);
+    if (sheltersRes.data) {
+      const allRatings: Rating[] = ratingsRes.data ?? [];
+      const withScore = sheltersRes.data
         .filter((s: Shelter) => (s.rating_count ?? 0) > 0)
-        .map((s: Shelter) => ({
-          ...s,
-          overall_score: s.overall_score ?? (
-            [s.avg_friendly, s.avg_safe, s.avg_clean, s.avg_happy]
-              .filter(Boolean)
-              .reduce((a: number, b) => a + (b as number), 0) /
-            [s.avg_friendly, s.avg_safe, s.avg_clean, s.avg_happy].filter(Boolean).length
-          ),
-        }))
+        .map((s: Shelter) => {
+          const shelterRatings = allRatings.filter((r) => r.shelter_id === s.id);
+          return { ...s, overall_score: computeCumulativeScore(s, shelterRatings) };
+        })
+        .filter((s: Shelter) => s.overall_score != null)
         .sort((a: Shelter, b: Shelter) => (b.overall_score ?? 0) - (a.overall_score ?? 0))
         .slice(0, 5);
       setShelters(withScore);
