@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  View,
   Text,
   TextInput,
   TouchableOpacity,
@@ -29,13 +28,12 @@ async function geocodeAddress(address: string): Promise<{ lat: number; lng: numb
 
 export default function AddShelterScreen() {
   const { user } = useAuth();
-  const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!name.trim() || !address.trim()) {
-      Alert.alert('Error', 'Please provide a name and address.');
+    if (!address.trim()) {
+      Alert.alert('Error', 'Please provide an address.');
       return;
     }
     setLoading(true);
@@ -47,15 +45,14 @@ export default function AddShelterScreen() {
         return;
       }
       const { error } = await supabase.from('shelters').insert({
-        name: name.trim(),
+        name: address.trim(),
         address: address.trim(),
         lat: coords.lat,
         lng: coords.lng,
         added_by: user!.id,
       });
       if (error) throw error;
-      Alert.alert('Added!', `"${name}" has been added to the map.`);
-      setName('');
+      Alert.alert('Added!', 'Shelter has been added to the map.');
       setAddress('');
     } catch (e: any) {
       Alert.alert('Error', e.message);
@@ -72,27 +69,16 @@ export default function AddShelterScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <Text style={styles.title}>Add a Shelter</Text>
         <Text style={styles.subtitle}>
-          Know a shelter in Tel Aviv? Add it so others can discover and rate it.
+          Know a shelter in Tel Aviv? Enter its address and we'll place it on the map.
         </Text>
-
-        <Text style={styles.label}>Shelter name</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="e.g. Rothschild Blvd Shelter"
-          placeholderTextColor="#bbb"
-          value={name}
-          onChangeText={setName}
-        />
 
         <Text style={styles.label}>Address</Text>
         <TextInput
-          style={[styles.input, styles.inputMulti]}
+          style={styles.input}
           placeholder="e.g. Rothschild Blvd 50, Tel Aviv"
           placeholderTextColor="#bbb"
           value={address}
           onChangeText={setAddress}
-          multiline
-          numberOfLines={2}
         />
 
         <Text style={styles.hint}>
@@ -127,7 +113,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e0e0e0',
   },
-  inputMulti: { minHeight: 60, textAlignVertical: 'top' },
   hint: { fontSize: 12, color: '#bbb', marginTop: 4, lineHeight: 18 },
   button: {
     backgroundColor: '#4f6ef7',

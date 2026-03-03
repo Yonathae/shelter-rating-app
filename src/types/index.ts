@@ -6,6 +6,7 @@ export interface Shelter {
   lng: number;
   added_by: string;
   created_at: string;
+  image_url?: string | null;
   avg_friendly?: number;
   avg_safe?: number;
   avg_clean?: number;
