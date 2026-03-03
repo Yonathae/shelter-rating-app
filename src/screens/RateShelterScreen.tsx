@@ -13,7 +13,6 @@ import {
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
 import { MapStackParamList } from '../types';
 import { SUB_CATEGORIES, SubQuestion } from '../lib/subCategories';
 
@@ -83,29 +82,10 @@ function BoolPicker({ question, value, onChange }: {
 
 export default function RateShelterScreen({ navigation, route }: Props) {
   const { shelter } = route.params;
-  const { user } = useAuth();
   const [mainScores, setMainScores] = useState<MainScores>({ friendly: 0, safe: 0, clean: 0, happy: 0 });
   const [subRatings, setSubRatings] = useState<Record<string, number | boolean>>({});
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
-  const [existingId, setExistingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    supabase
-      .from('ratings')
-      .select('*')
-      .eq('shelter_id', shelter.id)
-      .eq('user_id', user!.id)
-      .single()
-      .then(({ data }) => {
-        if (data) {
-          setExistingId(data.id);
-          setMainScores({ friendly: data.friendly, safe: data.safe, clean: data.clean, happy: data.happy });
-          setSubRatings(data.sub_ratings ?? {});
-          setNote(data.note ?? '');
-        }
-      });
-  }, [shelter.id, user?.id]);
 
   const setSubValue = (key: string, value: number | boolean) => {
     setSubRatings((prev) => ({ ...prev, [key]: value }));
@@ -118,22 +98,13 @@ export default function RateShelterScreen({ navigation, route }: Props) {
     }
     setLoading(true);
     try {
-      const payload = {
+      const { error } = await supabase.from('ratings').insert({
+        shelter_id: shelter.id,
         ...mainScores,
         note: note.trim() || null,
         sub_ratings: Object.keys(subRatings).length > 0 ? subRatings : null,
-      };
-      if (existingId) {
-        const { error } = await supabase.from('ratings').update(payload).eq('id', existingId);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('ratings').insert({
-          shelter_id: shelter.id,
-          user_id: user!.id,
-          ...payload,
-        });
-        if (error) throw error;
-      }
+      });
+      if (error) throw error;
       Alert.alert('Thanks!', 'Your rating has been saved.', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
@@ -206,7 +177,7 @@ export default function RateShelterScreen({ navigation, route }: Props) {
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>{existingId ? 'Update Rating' : 'Submit Rating'}</Text>
+          <Text style={styles.buttonText}>Submit Rating</Text>
         )}
       </TouchableOpacity>
     </ScrollView>

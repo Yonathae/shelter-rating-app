@@ -11,7 +11,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
 
 // Bounding box for Tel Aviv municipality (roughly)
 const TEL_AVIV_BOUNDS = { minLat: 32.03, maxLat: 32.14, minLng: 34.74, maxLng: 34.83 };
@@ -36,7 +35,6 @@ async function geocodeAddress(address: string): Promise<{ lat: number; lng: numb
 }
 
 export default function AddShelterScreen() {
-  const { user } = useAuth();
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -58,7 +56,6 @@ export default function AddShelterScreen() {
         address: address.trim(),
         lat: coords.lat,
         lng: coords.lng,
-        added_by: user!.id,
       });
       if (error) throw error;
       Alert.alert('Added!', 'Shelter has been added to the map.');

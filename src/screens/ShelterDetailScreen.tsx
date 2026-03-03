@@ -13,7 +13,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp, useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
 import { Shelter, Rating, MapStackParamList } from '../types';
 import { SUB_CATEGORIES } from '../lib/subCategories';
 import { computeCumulativeScore } from '../lib/scoring';
@@ -40,9 +39,7 @@ function Stars({ value }: { value: number }) {
 
 export default function ShelterDetailScreen({ navigation, route }: Props) {
   const { shelter } = route.params;
-  const { user } = useAuth();
   const [ratings, setRatings] = useState<Rating[]>([]);
-  const [myRating, setMyRating] = useState<Rating | null>(null);
   const [shelterData, setShelterData] = useState<Shelter>(shelter);
   const [loading, setLoading] = useState(true);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -55,7 +52,6 @@ export default function ShelterDetailScreen({ navigation, route }: Props) {
     ]);
     const fetchedRatings: Rating[] = ratingsRes.data ?? [];
     setRatings(fetchedRatings);
-    setMyRating(fetchedRatings.find((r) => r.user_id === user?.id) ?? null);
 
     // Compute aggregates client-side from fetched ratings
     const avg = (key: keyof Rating) => {
@@ -141,7 +137,6 @@ export default function ShelterDetailScreen({ navigation, route }: Props) {
     return <View style={styles.center}><ActivityIndicator size="large" color="#4f6ef7" /></View>;
   }
 
-  const isOwner = user?.id === shelter.added_by;
   const cumulativeScore = computeCumulativeScore(shelterData, ratings);
 
   return (
@@ -186,11 +181,6 @@ export default function ShelterDetailScreen({ navigation, route }: Props) {
             </View>
           ) : null}
         </View>
-        {isOwner && (
-          <TouchableOpacity onPress={handleDelete} style={styles.deleteBtn}>
-            <Text style={styles.deleteBtnText}>Delete Shelter</Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       {/* Scores */}
@@ -216,10 +206,10 @@ export default function ShelterDetailScreen({ navigation, route }: Props) {
       </View>
 
       <TouchableOpacity
-        style={[styles.rateBtn, myRating ? styles.rateBtnSecondary : styles.rateBtnPrimary]}
+        style={[styles.rateBtn, styles.rateBtnPrimary]}
         onPress={() => navigation.navigate('RateShelter', { shelter: shelterData })}
       >
-        <Text style={styles.rateBtnText}>{myRating ? 'Edit My Rating' : 'Rate This Shelter'}</Text>
+        <Text style={styles.rateBtnText}>Rate This Shelter</Text>
       </TouchableOpacity>
 
       {/* Sub-category aggregates */}
