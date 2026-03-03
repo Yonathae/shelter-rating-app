@@ -51,14 +51,25 @@ export default function ShelterDetailScreen({ navigation, route }: Props) {
     setLoading(true);
     const [ratingsRes, shelterRes] = await Promise.all([
       supabase.from('ratings').select('*').eq('shelter_id', shelter.id).order('created_at', { ascending: false }),
-      supabase.rpc('shelters_with_ratings').eq('id', shelter.id).single(),
+      supabase.from('shelters').select('*').eq('id', shelter.id).single(),
     ]);
-    if (ratingsRes.data) {
-      setRatings(ratingsRes.data);
-      const mine = ratingsRes.data.find((r: Rating) => r.user_id === user?.id) ?? null;
-      setMyRating(mine);
-    }
-    if (shelterRes.data) setShelterData(shelterRes.data);
+    const fetchedRatings: Rating[] = ratingsRes.data ?? [];
+    setRatings(fetchedRatings);
+    setMyRating(fetchedRatings.find((r) => r.user_id === user?.id) ?? null);
+
+    // Compute aggregates client-side from fetched ratings
+    const avg = (key: keyof Rating) => {
+      const vals = fetchedRatings.map((r) => r[key] as number).filter(Boolean);
+      return vals.length ? Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10 : undefined;
+    };
+    setShelterData({
+      ...(shelterRes.data ?? shelter),
+      avg_friendly: avg('friendly'),
+      avg_safe: avg('safe'),
+      avg_clean: avg('clean'),
+      avg_happy: avg('happy'),
+      rating_count: fetchedRatings.length,
+    });
     setLoading(false);
   }, [shelter.id, user?.id]);
 
