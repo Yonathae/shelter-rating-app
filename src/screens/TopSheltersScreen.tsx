@@ -28,10 +28,20 @@ export default function TopSheltersScreen() {
     setLoading(true);
     const { data } = await supabase.rpc('shelters_with_ratings');
     if (data) {
-      const rated = data
-        .filter((s: Shelter) => s.overall_score != null)
+      const withScore = data
+        .filter((s: Shelter) => (s.rating_count ?? 0) > 0)
+        .map((s: Shelter) => ({
+          ...s,
+          overall_score: s.overall_score ?? (
+            [s.avg_friendly, s.avg_safe, s.avg_clean, s.avg_happy]
+              .filter(Boolean)
+              .reduce((a: number, b) => a + (b as number), 0) /
+            [s.avg_friendly, s.avg_safe, s.avg_clean, s.avg_happy].filter(Boolean).length
+          ),
+        }))
+        .sort((a: Shelter, b: Shelter) => (b.overall_score ?? 0) - (a.overall_score ?? 0))
         .slice(0, 5);
-      setShelters(rated);
+      setShelters(withScore);
     }
     setLoading(false);
   }, []);
