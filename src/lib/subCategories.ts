@@ -63,7 +63,6 @@ export const SUB_CATEGORIES: SubCategory[] = [
     label: 'Relationships',
     emoji: '💔',
     questions: [
-      { type: 'scale', key: 'exes_present', label: 'How many people here are exes of each other', low: 'Total strangers', high: 'Everyone has a history' },
       { type: 'scale', key: 'rent_trapped', label: 'How many would leave each other but can\'t afford rent', low: 'Everyone\'s genuinely happy', high: 'Pure financial hostages' },
       { type: 'scale', key: 'random_match_probability', label: 'If you pick 2 random people, chance they\'d like each other', low: 'Guaranteed awkward silence', high: 'It\'s basically a dating app' },
       { type: 'scale', key: 'situationships', label: 'Average number of active situationships per person', low: 'Emotionally available', high: 'It\'s complicated x4' },
