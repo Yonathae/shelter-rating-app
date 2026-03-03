@@ -28,22 +28,37 @@ export default function TopSheltersScreen() {
   const fetchTop = useCallback(async () => {
     setLoading(true);
     const [sheltersRes, ratingsRes] = await Promise.all([
-      supabase.rpc('shelters_with_ratings'),
+      supabase.from('shelters').select('*'),
       supabase.from('ratings').select('*'),
     ]);
-    if (sheltersRes.data) {
-      const allRatings: Rating[] = ratingsRes.data ?? [];
-      const withScore = sheltersRes.data
-        .filter((s: Shelter) => (s.rating_count ?? 0) > 0)
-        .map((s: Shelter) => {
-          const shelterRatings = allRatings.filter((r) => r.shelter_id === s.id);
-          return { ...s, overall_score: computeCumulativeScore(s, shelterRatings) };
-        })
-        .filter((s: Shelter) => s.overall_score != null)
-        .sort((a: Shelter, b: Shelter) => (b.overall_score ?? 0) - (a.overall_score ?? 0))
-        .slice(0, 5);
-      setShelters(withScore);
-    }
+    const allShelters: Shelter[] = sheltersRes.data ?? [];
+    const allRatings: Rating[] = ratingsRes.data ?? [];
+
+    const avg = (rs: Rating[], key: keyof Rating) => {
+      const vals = rs.map((r) => r[key] as number).filter(Boolean);
+      return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : undefined;
+    };
+
+    const scored = allShelters
+      .map((s) => {
+        const rs = allRatings.filter((r) => r.shelter_id === s.id);
+        if (!rs.length) return null;
+        const enriched: Shelter = {
+          ...s,
+          avg_friendly: avg(rs, 'friendly'),
+          avg_safe: avg(rs, 'safe'),
+          avg_clean: avg(rs, 'clean'),
+          avg_happy: avg(rs, 'happy'),
+          rating_count: rs.length,
+        };
+        return { ...enriched, overall_score: computeCumulativeScore(enriched, rs) };
+      })
+      .filter(Boolean)
+      .filter((s) => s!.overall_score != null)
+      .sort((a, b) => (b!.overall_score ?? 0) - (a!.overall_score ?? 0))
+      .slice(0, 5) as Shelter[];
+
+    setShelters(scored);
     setLoading(false);
   }, []);
 
