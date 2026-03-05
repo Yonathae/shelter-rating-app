@@ -15,7 +15,7 @@ import { supabase } from '../lib/supabase';
 import { Shelter, MapStackParamList } from '../types';
 
 type Props = {
-  navigation: NativeStackNavigationProp<MapStackParamList, 'MapHome'>;
+  navigation: NativeStackNavigationProp<MapStackParamList>;
 };
 
 

@@ -28,16 +28,6 @@ export interface Rating {
   created_at: string;
 }
 
-export type RootStackParamList = {
-  Auth: undefined;
-  Main: undefined;
-};
-
-export type AuthStackParamList = {
-  Login: undefined;
-  SignUp: undefined;
-};
-
 export type MainTabParamList = {
   Map: undefined;
   Top5: undefined;
@@ -45,6 +35,7 @@ export type MainTabParamList = {
 };
 
 export type MapStackParamList = {
+  Tabs: undefined;
   MapHome: undefined;
   ShelterDetail: { shelter: Shelter };
   RateShelter: { shelter: Shelter };
